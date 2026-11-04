@@ -6,7 +6,7 @@ Guía para Claude Code en este repositorio. `plan.md` dice **qué sigue** y `sta
 
 La herramienta local para administrar el espacio de esta Mac de desarrollo: qué pesa, qué se puede regenerar, qué está abierto, qué vive en el disco externo y dónde están las llaves que no se pueden perder. La usa una persona en `localhost` y la opera también Claude Code por MCP.
 
-Repo privado. Todo corre local: nada de nube, cuentas ni telemetría.
+Repo **público** para la comunidad (MIT). Todo corre local: nada de nube, cuentas ni telemetría. Nunca datos personales en el repo: el modo demo y `scripts/sample_data.mjs` son ficticios.
 
 ### Objetivos
 
@@ -31,7 +31,19 @@ Repo privado. Todo corre local: nada de nube, cuentas ni telemetría.
 | Fase | Qué | Dónde corre |
 |---|---|---|
 | 0 · Propuesta | Prototipo navegable con datos del escaneo real. | `propuesta/` |
-| 1 · Herramienta | Motor TypeScript + dashboard React en `localhost` + CLI + servidor MCP. | Esta Mac (launchd) |
+| 1 · Herramienta | Motor TypeScript (`src/core`), servidor (`src/server`), CLI (`src/cli`), MCP (`src/mcp`) y dashboard React (`web/`). | `http://localhost:2633` (launchd) |
+
+### Correr
+
+```bash
+npm ci && npm run build
+node src/cli/main.ts serve                 # http://localhost:2633
+npm run dev                                # + Vite en 2634 con proxy y token
+BODEGA_DEMO=1 BODEGA_PORT=2635 node src/cli/main.ts serve
+npm test && npm run lint
+```
+
+Node ejecuta los `.ts` directo: sólo sintaxis borrable (nada de `enum`, `namespace` ni propiedades en el constructor) e imports con extensión `.ts`. El estado vive en `~/.bodega/` (`token`, `config.json`, `scan.json`, `bodega.db`, `relocations.json`, `moves.json`).
 
 ### Ver el prototipo
 
