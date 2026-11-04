@@ -4,7 +4,7 @@ Guía para Claude Code en este repositorio. `plan.md` dice **qué sigue** y `sta
 
 ## Qué es Bodega
 
-La herramienta local para administrar el espacio de esta Mac de desarrollo: qué pesa, qué se puede regenerar, qué está abierto, qué vive en el Kingston y dónde están las llaves que no se pueden perder. La usa una persona en `localhost` y la opera también Claude Code por MCP.
+La herramienta local para administrar el espacio de esta Mac de desarrollo: qué pesa, qué se puede regenerar, qué está abierto, qué vive en el disco externo y dónde están las llaves que no se pueden perder. La usa una persona en `localhost` y la opera también Claude Code por MCP.
 
 Repo privado. Todo corre local: nada de nube, cuentas ni telemetría.
 
@@ -13,7 +13,7 @@ Repo privado. Todo corre local: nada de nube, cuentas ni telemetría.
 1. Saber en 10 segundos cuánto espacio hay, qué lo ocupa y cuánto se recupera sin perder nada.
 2. Limpiar con planes revisables: qué, por qué, cuánto y con qué comando. Nada se borra sin pasar por la Papelera.
 3. Ver qué proyecto tiene servidores y daemons abiertos, y detenerlos con confirmación.
-4. Usar el Kingston con reubicaciones oficiales (variables de cada herramienta), no con enlaces frágiles.
+4. Usar el disco externo con reubicaciones oficiales (variables de cada herramienta), no con enlaces frágiles.
 5. Respaldar en una imagen cifrada las llaves de firma, `key.properties`, certificados y `.env`, sin leerlos.
 
 ### Vocabulario
@@ -22,8 +22,8 @@ Repo privado. Todo corre local: nada de nube, cuentas ni telemetría.
 |---|---|---|
 | Compilados | `regen` | Carpetas que la compilación vuelve a crear: `build`, `bin`, `obj`, `.dart_tool`, `node_modules`, `DerivedData`. |
 | Plan | `plan` | Lista de acciones con tamaño, comando y forma de regresar. |
-| Reubicación | `relocation` | Carpeta que vive en el Kingston con su variable oficial (`ANDROID_AVD_HOME`, `GRADLE_USER_HOME`, `NUGET_PACKAGES`, `PUB_CACHE`). |
-| Bóveda | `vault` | Imagen cifrada en el Kingston con los secretos y llaves de firma. |
+| Reubicación | `relocation` | Carpeta que vive en el disco externo con su variable oficial (`ANDROID_AVD_HOME`, `GRADLE_USER_HOME`, `NUGET_PACKAGES`, `PUB_CACHE`). |
+| Bóveda | `vault` | Imagen cifrada en el disco externo con los secretos y llaves de firma. |
 | Proyecto activo | `active` | Con cambios en los últimos 14 días; no se limpia por omisión. |
 
 ## Fases
