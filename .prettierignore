@@ -1,0 +1,6 @@
+node_modules/
+dist/
+web/dist/
+propuesta/js/data.*.js
+package-lock.json
+*.md
