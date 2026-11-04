@@ -17,6 +17,7 @@ import {
 	token,
 } from '../core/config.ts'
 import { moveDeskItem } from '../core/desktop.ts'
+import { listDisks } from '../core/disks.ts'
 import { run } from '../core/exec.ts'
 import { events, record } from '../core/history.ts'
 import { expand } from '../core/paths.ts'
@@ -32,6 +33,7 @@ import {
 } from '../core/relocate.ts'
 import { lastScan, type Scan, scan, scanLive } from '../core/scan.ts'
 import { backupVault, vaultImage } from '../core/vault.ts'
+
 import { demoScan } from './demo.ts'
 import { HttpError, json, readJson, stream } from './http.ts'
 
@@ -41,7 +43,9 @@ const WEB = fileURLToPath(new URL('../../web/dist/', import.meta.url))
 const TOKEN = token()
 const HOSTS = new Set([`localhost:${PORT}`, `127.0.0.1:${PORT}`])
 
-let config: Config = loadConfig()
+let config: Config = DEMO
+	? { roots: ['~/Developer'], activeDays: 14, external: '/Volumes/EXTERNO' }
+	: loadConfig()
 let current: Scan | null = DEMO ? demoScan() : lastScan()
 let scanning: Promise<Scan> | null = null
 let progress: { step: string; done: number; total: number } | null = null
@@ -124,26 +128,65 @@ const serveStatic = (req: IncomingMessage, res: ServerResponse) => {
 
 const state = () => ({
 	demo: DEMO,
+	cli: fileURLToPath(new URL('../../bin/bodega.js', import.meta.url)),
+	port: PORT,
 	config,
 	scan: current,
 	plan: plan(),
+	active: current
+		? current.projects
+				.filter(
+					p =>
+						Date.now() - new Date(p.last).getTime() < config.activeDays * 864e5
+				)
+				.map(p => p.name)
+		: [],
 	progress,
 	moves: listMoves(),
 	relocations: listRelocations(),
 	relocatable: RELOCATABLE,
-	vaultImage: config.external ? existsSync(vaultImage(config.external)) : false,
+	vaultImage: DEMO
+		? false
+		: config.external
+			? existsSync(vaultImage(config.external))
+			: false,
 })
 
-const afterApply = (ids: string[]) => {
+const afterApply = async (ids: string[]) => {
 	if (!current) return
 	const gone = new Set(ids)
+	const projects = current.projects.map(p => {
+		const removed = p.regen
+			.filter(r => gone.has(`r:${r.path}`))
+			.reduce((s, r) => s + r.size, 0)
+		return {
+			...p,
+			size: p.size - removed,
+			regen: p.regen.filter(r => !gone.has(`r:${r.path}`)),
+		}
+	})
+	const freedGlobals = current.globals
+		.filter(g => gone.has(`g:${g.id}`) && g.kind !== 'relocate')
+		.reduce((s, g) => s + g.size, 0)
+	const freedProjects = current.projects.reduce(
+		(s, p) =>
+			s +
+			p.regen
+				.filter(r => gone.has(`r:${r.path}`))
+				.reduce((a, r) => a + r.size, 0),
+		0
+	)
 	current = {
 		...current,
-		projects: current.projects.map(p => ({
-			...p,
-			regen: p.regen.filter(r => !gone.has(`r:${r.path}`)),
-		})),
+		projects,
 		globals: current.globals.filter(g => !gone.has(`g:${g.id}`)),
+		disks: DEMO ? current.disks : await listDisks(),
+		categories: {
+			...current.categories,
+			build: Math.max(0, current.categories.build - freedProjects),
+			cache: Math.max(0, current.categories.cache - freedGlobals),
+		},
+		relocations: listRelocations(),
 	}
 }
 
@@ -217,7 +260,7 @@ const routes: Record<string, Handler> = {
 				total: actions.length,
 			})
 		} else await apply(actions, config, send, { dryRun: body.dryRun === true })
-		if (body.dryRun !== true) afterApply(ids)
+		if (body.dryRun !== true) await afterApply(ids)
 		res.end()
 		return undefined
 	},
@@ -386,6 +429,8 @@ const routes: Record<string, Handler> = {
 		return state()
 	},
 }
+
+export type State = ReturnType<typeof state>
 
 export const startServer = async (port = PORT) => {
 	if (!DEMO) await applyEnv()

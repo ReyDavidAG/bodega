@@ -1,7 +1,7 @@
 import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 
-import { type Stack, SKIP, ruleFor, stacksIn } from './ecosystems.ts'
+import { ruleFor, SKIP, type Stack, stacksIn } from './ecosystems.ts'
 import { run } from './exec.ts'
 import { expand, pretty } from './paths.ts'
 import { sizeOf, sizesOf } from './size.ts'

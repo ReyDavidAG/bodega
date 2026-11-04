@@ -1,13 +1,13 @@
-import { basename, dirname } from 'node:path'
 import { readdirSync } from 'node:fs'
+import { basename, dirname } from 'node:path'
 
 import type { Config } from './config.ts'
 import { listDisks } from './disks.ts'
 import { RULES } from './ecosystems.ts'
 import { run } from './exec.ts'
 import { record } from './history.ts'
-import type { Action } from './plan.ts'
 import { expand } from './paths.ts'
+import type { Action } from './plan.ts'
 import { relocate } from './relocate.ts'
 import { removeRegenerable } from './trash.ts'
 
