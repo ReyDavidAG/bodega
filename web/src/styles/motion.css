@@ -1,0 +1,117 @@
+[data-reveal] {
+	opacity: 0;
+	transform: translateY(10px);
+	transition:
+		opacity 0.5s var(--ease),
+		transform 0.5s var(--ease);
+	transition-delay: calc(var(--i, 0) * 50ms);
+}
+
+[data-reveal].in {
+	opacity: 1;
+	transform: none;
+}
+
+[data-reveal]:not(.in) .bar span,
+[data-reveal]:not(.in) .rk-track span,
+[data-reveal]:not(.in) .mini span {
+	flex-grow: 0 !important;
+	width: 0 !important;
+}
+
+.mini span {
+	transition: width 0.8s var(--ease);
+}
+
+.table tbody tr,
+.plan-item,
+.file {
+	animation: row-in 0.35s var(--ease) both;
+	animation-delay: calc(min(var(--n, 0), 20) * 18ms);
+}
+
+@keyframes ping {
+	0% {
+		opacity: 0.7;
+		transform: scale(0.6);
+	}
+	70%,
+	100% {
+		opacity: 0;
+		transform: scale(1.9);
+	}
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes row-in {
+	from {
+		opacity: 0;
+		transform: translateY(5px);
+	}
+}
+
+@keyframes row-out {
+	to {
+		opacity: 0;
+		transform: translateX(24px);
+	}
+}
+
+@keyframes pop-in {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation: none;
+}
+
+main {
+	view-transition-name: main;
+}
+
+::view-transition-old(main) {
+	animation: vt-out 0.16s var(--ease) both;
+}
+
+::view-transition-new(main) {
+	animation: vt-in 0.36s var(--ease) both 0.05s;
+}
+
+@keyframes vt-out {
+	to {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+}
+
+@keyframes vt-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 1ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 1ms !important;
+		transition-delay: 0ms !important;
+	}
+
+	[data-reveal] {
+		opacity: 1;
+		transform: none;
+	}
+}

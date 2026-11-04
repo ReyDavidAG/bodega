@@ -6,6 +6,7 @@ import { run } from '../core/exec.ts'
 import { buildPlan } from '../core/plan.ts'
 import { stopProcess } from '../core/processes.ts'
 import { lastScan, scan, scanLive } from '../core/scan.ts'
+
 import { gb, table } from './format.ts'
 
 const [command = 'help', ...args] = process.argv.slice(2)
