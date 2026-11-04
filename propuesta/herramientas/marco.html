@@ -1,0 +1,8 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Marco</title>
+<style>body{margin:0;background:#333;display:flex;gap:16px;padding:16px;align-items:flex-start;overflow:auto}iframe{border:0;background:#fff;flex:none}</style>
+<script>
+const q=new URLSearchParams(location.search);const w=q.get('w')||375,h=q.get('h')||760,p=q.get('p')||'';
+document.write(`<iframe src="../index.html#${p}" width="${w}" height="${h}"></iframe>`);
+</script>
