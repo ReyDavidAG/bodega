@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 import { Icon } from './icons'
 
@@ -16,7 +17,7 @@ export const Drawer = ({
 		addEventListener('keydown', key)
 		return () => removeEventListener('keydown', key)
 	}, [onClose])
-	return (
+	return createPortal(
 		<>
 			<div className='scrim open' onClick={onClose} />
 			<aside
@@ -37,6 +38,7 @@ export const Drawer = ({
 				</div>
 				{children}
 			</aside>
-		</>
+		</>,
+		document.body
 	)
 }
