@@ -23,17 +23,20 @@
 - Plan detallado en `plan.md`: arquitectura, ramas, criterios de listo, reglas de seguridad y riesgos.
 - Decisiones cerradas (2026-11-07): motor por el LaunchAgent existente, firma ad-hoc, barra de menú + Dock al abrir, aviso a 20 GB, sin escaneos periódicos, sólo Apple Silicon, identificador `com.reydavidag.bodega`.
 
+- Rust 1.99.1 con `rustup` (clippy y rustfmt).
+- Dashboard probado en WebKit (motor de Safari y de la ventana de Tauri) con Playwright: 10 pantallas en 1280, 960 y 375 px, claro y oscuro, progreso en streaming y simulación del plan. Único hallazgo: el drawer quedaba debajo de la barra superior (también en Chrome); ahora se monta con un portal.
+- `GET /api/summary` (8–21 ms con datos reales), `alertFreeGB` en la configuración y en Ajustes, `bodega status` con el resumen. 20 pruebas en verde.
+
 ## Siguiente
 
-1. Preparación: instalar Rust con `rustup` y probar el dashboard en Safari.
-2. `feature/summary`.
+1. `feature/desktop`.
 
 ## Avance Fase 2
 
 | Paso | Estado |
 |---|---|
-| 0 · Preparación (Rust, prueba en Safari) | Pendiente |
-| 2 · `feature/summary` | Pendiente |
+| 0 · Preparación (Rust, prueba en Safari) | Hecho |
+| 2 · `feature/summary` | Hecho |
 | 3 · `feature/desktop` | Pendiente |
 | 4 · `feature/desktop-ci` | Pendiente |
 | 5 · `release/0.2.0` | Pendiente |
