@@ -1,6 +1,6 @@
 {
 	"name": "bodega",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Administra el espacio de tu Mac de desarrollo: compilados, cachés, simuladores, puertos abiertos, discos externos y respaldo cifrado de llaves.",
 	"license": "MIT",
 	"type": "module",
