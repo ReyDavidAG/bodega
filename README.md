@@ -45,6 +45,26 @@ bodega open            # http://localhost:2633
 
 Si no quieres que corra siempre: `bodega serve` en una terminal y `bodega uninstall` para quitar el LaunchAgent.
 
+## App de escritorio (opcional)
+
+Bodega también se abre como app de macOS, `Bodega.app`, hecha con [Tauri](https://tauri.app) y que vive en la barra de menú:
+
+- Abre el mismo dashboard en su propia ventana, sin pestaña de navegador.
+- Desde la barra de menú ves el espacio libre y el último escaneo, escaneas, lo abres en el navegador o lo activas al iniciar sesión.
+- Te avisa cuando el disco interno baja del umbral de Ajustes (20 GB por omisión).
+- Si el motor no está corriendo, lo arranca con un clic.
+
+La app es sólo una ventana: el motor sigue siendo el mismo (`bodega install`) y la app nunca toca archivos ni procesos por su cuenta. No se publica ejecutable; se compila en tu Mac:
+
+```bash
+# Requiere Rust (https://rustup.rs) y las herramientas de Xcode
+npm ci
+npm run desktop:build
+open desktop/src-tauri/target/release/bundle/macos/Bodega.app
+```
+
+Lleva firma ad-hoc, así que funciona en la Mac donde la compilas. Cópiala a `/Applications` si quieres tenerla a la mano.
+
 ## CLI
 
 ```text
@@ -66,7 +86,7 @@ Luego pídele, por ejemplo, "¿qué me está llenando el disco?", "arma un plan 
 
 ## Ajustes
 
-En el dashboard eliges qué carpetas son de proyectos (por omisión `~/Developer`), cuántos días cuenta un proyecto como activo (14) y cuál es tu disco externo. Todo se guarda en `~/.bodega/`.
+En el dashboard eliges qué carpetas son de proyectos (por omisión `~/Developer`), cuántos días cuenta un proyecto como activo (14), con cuánto espacio libre te avisa (20 GB; 0 apaga los avisos) y cuál es tu disco externo. Todo se guarda en `~/.bodega/`.
 
 ## Desarrollo
 
@@ -74,6 +94,7 @@ En el dashboard eliges qué carpetas son de proyectos (por omisión `~/Developer
 npm run dev     # servidor en 2633 con recarga + Vite en http://localhost:2634
 npm test        # pruebas del motor, del servidor y del MCP
 npm run lint
+npm run desktop:dev   # la app de escritorio contra el motor en 2633
 BODEGA_DEMO=1 BODEGA_PORT=2635 node src/cli/main.ts serve   # datos ficticios, nada toca tu disco
 ```
 
@@ -81,7 +102,7 @@ Guía de contribución en [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## English
 
-Bodega is a local dashboard, CLI and MCP server to manage disk space on a macOS development machine: build artifacts and caches per ecosystem (Flutter, .NET, Node, Rust, Gradle, Xcode, Python), iOS simulators and Android emulators, listening ports per project, moving projects and caches to an external drive with verified copies, and an encrypted backup of signing keys and `.env` files. It runs on `127.0.0.1:2633` with a per-install token. UI is in Spanish; contributions to translate it are welcome.
+Bodega is a local dashboard, CLI and MCP server to manage disk space on a macOS development machine: build artifacts and caches per ecosystem (Flutter, .NET, Node, Rust, Gradle, Xcode, Python), iOS simulators and Android emulators, listening ports per project, moving projects and caches to an external drive with verified copies, and an encrypted backup of signing keys and `.env` files. It runs on `127.0.0.1:2633` with a per-install token, and an optional Tauri menu bar app (built from source) opens the same dashboard in its own window and warns when the disk runs low. UI is in Spanish; contributions to translate it are welcome.
 
 ## Licencia
 

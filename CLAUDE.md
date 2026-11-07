@@ -32,6 +32,7 @@ Repo **público** para la comunidad (MIT). Todo corre local: nada de nube, cuent
 |---|---|---|
 | 0 · Propuesta | Prototipo navegable con datos del escaneo real. | `propuesta/` |
 | 1 · Herramienta | Motor TypeScript (`src/core`), servidor (`src/server`), CLI (`src/cli`), MCP (`src/mcp`) y dashboard React (`web/`). | `http://localhost:2633` (launchd) |
+| 2 · Escritorio | App Tauri 2 (`desktop/src-tauri`, Rust) que abre el dashboard en su ventana y vive en la barra de menú; página de respaldo en `desktop/fallback`. | `Bodega.app`, sólo se compila local |
 
 ### Correr
 
@@ -41,6 +42,9 @@ node src/cli/main.ts serve                 # http://localhost:2633
 npm run dev                                # + Vite en 2634 con proxy y token
 BODEGA_DEMO=1 BODEGA_PORT=2635 node src/cli/main.ts serve
 npm test && npm run lint
+npm run desktop:dev                        # app Tauri contra el motor (BODEGA_PORT para otro)
+npm run desktop:build                      # Bodega.app en desktop/src-tauri/target/release/bundle/macos
+(cd desktop/src-tauri && cargo fmt && cargo clippy --all-targets -- -D warnings && cargo test)
 ```
 
 Node ejecuta los `.ts` directo: sólo sintaxis borrable (nada de `enum`, `namespace` ni propiedades en el constructor) e imports con extensión `.ts`. El estado vive en `~/.bodega/` (`token`, `config.json`, `scan.json`, `bodega.db`, `relocations.json`, `moves.json`).
@@ -58,7 +62,7 @@ Carga `js/data.local.js` (escaneo real, fuera de git) o `js/data.sample.js` (ano
 
 - Respuestas en español; código en inglés. Sin comentarios en el código. Commits de una sola línea.
 - El front pasa por `/frontend-review` antes de cada commit.
-- **Seguridad, no se negocia:** el servidor escucha sólo en `127.0.0.1`, con token por sesión; ninguna acción destructiva sin plan confirmado; nunca `rm` (Papelera o mover); nunca leer el contenido de secretos; detener procesos con SIGTERM y luego SIGKILL; Bodega no se detiene a sí misma.
+- **Seguridad, no se negocia:** el servidor escucha sólo en `127.0.0.1`, con token por sesión; ninguna acción destructiva sin plan confirmado; nunca `rm` (Papelera o mover); nunca leer el contenido de secretos; detener procesos con SIGTERM y luego SIGKILL; Bodega no se detiene a sí misma. La app de escritorio no opera archivos ni procesos (todo va al motor por HTTP con el token), la página remota no tiene IPC y no se publica ejecutable: sólo código.
 
 ### Diseño
 

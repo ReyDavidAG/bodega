@@ -17,6 +17,17 @@ npm run lint
 npm run build
 ```
 
+Si tocas `desktop/` (requiere Rust con `rustup` y las herramientas de Xcode):
+
+```bash
+cd desktop/src-tauri
+cargo fmt
+cargo clippy --all-targets -- -D warnings
+cargo test
+```
+
+Para probarla: `npm run desktop:dev` contra el motor en 2633, o con `BODEGA_DEMO=1 BODEGA_PORT=2635 node src/cli/main.ts serve` en otra terminal y `BODEGA_PORT=2635 npm run desktop:dev`.
+
 Si agregas un ecosistema o una caché:
 
 1. Su regla va en `src/core/ecosystems.ts` (carpeta + archivo que la confirma) o en `src/core/globals.ts` (ruta, comando oficial, cómo vuelve).
@@ -30,6 +41,7 @@ Si agregas un ecosistema o una caché:
 - El navegador nunca manda rutas: sólo IDs del último plan.
 - Lo que no es regenerable se mueve o va a la Papelera.
 - Los secretos nunca se leen para mostrarse ni salen de la máquina.
+- La app de escritorio (Rust) no toca archivos ni procesos: todo pasa por el motor. La página del dashboard no tiene IPC de Tauri; sólo la página de respaldo empaquetada puede consultar y arrancar el motor.
 
 ## Modo demo
 
