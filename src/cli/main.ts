@@ -6,6 +6,7 @@ import { run } from '../core/exec.ts'
 import { buildPlan } from '../core/plan.ts'
 import { stopProcess } from '../core/processes.ts'
 import { lastScan, scan, scanLive } from '../core/scan.ts'
+import { summarize } from '../core/summary.ts'
 
 import { gb, table } from './format.ts'
 
@@ -68,9 +69,8 @@ const commands: Record<string, () => Promise<void>> = {
 		console.log('LaunchAgent eliminado.')
 	},
 	status: async () => {
-		const s = await fresh()
-		const plan = buildPlan(s, loadConfig())
-		const checked = plan.flatMap(g => g.actions).filter(a => a.checked)
+		const config = loadConfig()
+		const s = await summarize(await fresh(), config)
 		console.log(
 			table([
 				['Disco', 'Libre', 'Total'],
@@ -78,8 +78,12 @@ const commands: Record<string, () => Promise<void>> = {
 			])
 		)
 		console.log(
-			`\nRecuperable sin perder nada: ${gb(checked.reduce((a, b) => a + b.size, 0))} en ${checked.length} acciones (bodega plan).`
+			`\nRecuperable sin perder nada: ${gb(s.reclaimable)} (bodega plan).`
 		)
+		if (s.low)
+			console.log(
+				`Aviso: el disco interno tiene menos de ${s.alertFreeGB} GB libres.`
+			)
 	},
 	plan: async () => {
 		const plan = buildPlan(await fresh(), loadConfig())
