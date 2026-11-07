@@ -33,6 +33,7 @@ import {
 	restore,
 } from '../core/relocate.ts'
 import { lastScan, type Scan, scan, scanLive } from '../core/scan.ts'
+import { summarize } from '../core/summary.ts'
 import { backupVault, vaultImage } from '../core/vault.ts'
 
 import { demoScan } from './demo.ts'
@@ -212,6 +213,9 @@ type Handler = (
 
 const routes: Record<string, Handler> = {
 	'GET /api/state': async () => state(),
+
+	'GET /api/summary': async () =>
+		summarize(current, config, { scanning: scanning !== null, live: !DEMO }),
 
 	'GET /api/live': async () =>
 		DEMO
