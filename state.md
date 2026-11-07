@@ -27,9 +27,14 @@
 - Dashboard probado en WebKit (motor de Safari y de la ventana de Tauri) con Playwright: 10 pantallas en 1280, 960 y 375 px, claro y oscuro, progreso en streaming y simulación del plan. Único hallazgo: el drawer quedaba debajo de la barra superior (también en Chrome); ahora se monta con un portal.
 - `GET /api/summary` (8–21 ms con datos reales), `alertFreeGB` en la configuración y en Ajustes, `bodega status` con el resumen. 20 pruebas en verde.
 
+- App de escritorio en `desktop/` con Tauri 2.12: ventana al dashboard con candado de navegación, página de respaldo que arranca el motor, barra de menú con espacio libre y escaneo, avisos de disco con histéresis, inicio con la sesión, Dock sólo con la ventana abierta y tamaño recordado. `Bodega.app` de 3.6 MB, firma ad-hoc.
+- 17 pruebas en Rust; `cargo fmt` y `clippy -D warnings` limpios. Probado contra un motor demo con registro de peticiones: el dashboard carga con token dentro de WKWebView, el respaldo salta al dashboard cuando el motor responde, la IPC queda negada a la página remota (`start_engine not allowed … URL: local`), escaneo desde el menú y arranque oculto.
+- Hallazgos corregidos en el camino: el motor mandaba bytes con decimales en modo demo (ahora redondea) y `location.replace` de `tauri://` a `http://` no navega en WKWebView (ahora navega Rust).
+
 ## Siguiente
 
-1. `feature/desktop`.
+1. `feature/desktop-ci`: CI de Rust y documentación.
+2. Prueba manual con datos reales: requiere instalar el LaunchAgent del motor (`bodega install`).
 
 ## Avance Fase 2
 
@@ -37,7 +42,7 @@
 |---|---|
 | 0 · Preparación (Rust, prueba en Safari) | Hecho |
 | 2 · `feature/summary` | Hecho |
-| 3 · `feature/desktop` | Pendiente |
+| 3 · `feature/desktop` | Hecho; falta la prueba manual con datos reales |
 | 4 · `feature/desktop-ci` | Pendiente |
 | 5 · `release/0.2.0` | Pendiente |
 
