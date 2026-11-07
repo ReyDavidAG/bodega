@@ -49,7 +49,7 @@ Bodega.app (Tauri · Rust)                 Motor (Node · ya existe)
 | 2 | `feature/summary` | Motor: `GET /api/summary` y umbral en la configuración. Pruebas. |
 | 3 | `feature/desktop` | `desktop/` con Tauri: ventana, candado de navegación, respaldo, barra de menú, avisos, inicio con la sesión, tamaño recordado, íconos. Pruebas en Rust. |
 | 4 | `feature/desktop-ci` | Job de Rust en CI y documentación (README, CONTRIBUTING, CLAUDE.md, CHANGELOG). |
-| 5 | `release/0.2.0` | `main` + tag `v0.2.0` con el `.dmg` adjunto. |
+| 5 | `release/0.2.0` | `main` + tag `v0.2.0`. Sólo código: no se publica ejecutable. |
 
 ### 0 · Preparación (antes de la rama 2)
 
@@ -101,13 +101,12 @@ desktop/
 - [ ] **Dock**: la app vive en la barra de menú; el ícono del Dock aparece sólo mientras la ventana está abierta (`ActivationPolicy::Accessory` ↔ `Regular`).
 - [ ] **Pruebas Rust**: candado de navegación (permitidas, rechazadas, trucos como `127.0.0.1:2633@evil.com`), lógica de avisos (cruza umbral, no repite, histéresis) y lectura del token (falta, vacío, permisos).
 - [ ] **Prueba manual** en esta Mac con datos reales: abrir, escanear desde el menú, simular y aplicar un plan, detener el motor → respaldo → iniciar, aviso con un umbral alto a propósito, cerrar y reabrir con el tamaño recordado.
-- **Listo cuando** `npm run desktop:build` deja `Bodega.app` y `.dmg` en `desktop/src-tauri/target/release/bundle/`, y la prueba manual pasa completa.
+- **Listo cuando** `npm run desktop:build` deja `Bodega.app` en `desktop/src-tauri/target/release/bundle/macos/`, y la prueba manual pasa completa.
 
 ### 4 · `feature/desktop-ci` · CI y documentación
 
 - [ ] CI: job `desktop` en `macos-latest` con `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` y `tauri build --no-bundle`; caché de Cargo.
-- [ ] Workflow de release: con el tag `v*` compila y adjunta el `.dmg` al release de GitHub.
-- [ ] README: sección «App de escritorio» con captura de la ventana y del menú, instalación y aviso de Gatekeeper si no va firmada.
+- [ ] README: sección «App de escritorio» con captura de la ventana y del menú, y cómo compilarla desde el código (no se publica ejecutable).
 - [ ] CONTRIBUTING: requisitos de Rust y cómo correr `desktop:dev`.
 - [ ] CLAUDE.md: Fase 2 en la tabla, `desktop/` en Correr y la regla de que Rust no opera archivos ni procesos.
 - [ ] CHANGELOG 0.2.0 y versión `0.2.0` en `package.json`, `tauri.conf.json` y `Cargo.toml`.
@@ -115,7 +114,7 @@ desktop/
 ### 5 · `release/0.2.0`
 
 - [ ] `npm test && npm run lint && npm run build`, `cargo test`, `npm run desktop:build`.
-- [ ] Merge a `main`, tag `v0.2.0`, merge de regreso a `develop`, `.dmg` en el release.
+- [ ] Merge a `main`, tag `v0.2.0`, merge de regreso a `develop`.
 
 ### Reglas de seguridad de la app
 
@@ -141,6 +140,6 @@ Cerradas el 2026-11-07.
 ### Riesgos
 
 - **WKWebView ≠ Chrome**: por eso va la prueba en Safari antes de todo.
-- **Gatekeeper**: un `.app` sin Developer ID descargado de GitHub se bloquea; el README explica clic derecho › Abrir o `xattr -dr com.apple.quarantine`.
+- **Gatekeeper**: no aplica mientras cada quien compile la app en su Mac; no se publican binarios.
 - **Motor sin LaunchAgent**: la ventana de respaldo lo cubre con instrucciones claras.
 - **Rust nuevo en el repo**: la CI con `clippy -D warnings` y `fmt` mantiene el mismo estándar que ESLint y Prettier.
