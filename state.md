@@ -6,7 +6,7 @@
 
 - **Fase 0 · Propuesta: aprobada.**
 - **Fase 1 · Herramienta: v0.1.0 publicada.**
-- **Fase 2 · Escritorio (Tauri): plan aprobado y decisiones cerradas.** Sigue la preparación.
+- **Fase 2 · Escritorio (Tauri): v0.2.0 publicada (sólo código).** Falta la prueba manual con datos reales.
 
 ## Hecho
 
@@ -34,8 +34,7 @@
 
 ## Siguiente
 
-1. `release/0.2.0`.
-2. Prueba manual con datos reales: requiere instalar el LaunchAgent del motor (`bodega install`).
+1. Prueba manual con datos reales: instalar el LaunchAgent del motor (`bodega install`, reemplaza el `bodega serve` manual), compilar con `npm run desktop:build`, abrir `Bodega.app` y recorrer la lista del paso 3 de `plan.md`. Confirmar que llega el aviso de macOS (subir el umbral en Ajustes por encima del espacio libre y luego regresarlo a 20).
 
 ## Avance Fase 2
 
@@ -45,7 +44,7 @@
 | 2 · `feature/summary` | Hecho |
 | 3 · `feature/desktop` | Hecho; falta la prueba manual con datos reales |
 | 4 · `feature/desktop-ci` | Hecho |
-| 5 · `release/0.2.0` | Pendiente |
+| 5 · `release/0.2.0` | Hecho · tag `v0.2.0` |
 
 ## Pendiente fuera de la Fase 2
 
