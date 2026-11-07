@@ -29,7 +29,7 @@ Una app de macOS hecha con **Tauri v2** (Rust) que abre el dashboard actual en s
 ```
 Bodega.app (Tauri · Rust)                 Motor (Node · ya existe)
 ├─ Ventana principal ── http://127.0.0.1:2633 ──► servidor + dashboard
-├─ Ventana de respaldo (local) ── «Iniciar motor» ──► launchctl kickstart
+├─ Página de respaldo (local) ── «Iniciar motor» ──► launchctl kickstart
 ├─ Barra de menú ── GET /api/summary cada 60 s ──► df + último escaneo
 │                └─ POST /api/scan
 └─ Avisos de macOS ◄── umbral `alertFreeGB` de config.json
@@ -37,7 +37,7 @@ Bodega.app (Tauri · Rust)                 Motor (Node · ya existe)
 
 - **Ventana principal**: carga `http://127.0.0.1:2633` como URL remota. Host y Origin son los que el servidor ya acepta, y el token llega en el `<meta>` del `index.html`. Esa página no tiene acceso a la IPC de Tauri (sin capabilities remotas, `withGlobalTauri: false`).
 - **Candado de navegación**: sólo se navega dentro de `127.0.0.1:2633`. Cualquier otro enlace se abre en el navegador predeterminado.
-- **Ventana de respaldo**: página HTML local empaquetada en la app, con un solo comando IPC (`start_engine`) habilitado sólo para ella. Reintenta cada 2 s y salta al dashboard cuando el motor responde.
+- **Página de respaldo**: HTML local empaquetado en la app que la misma ventana muestra si el motor no responde. Sólo ella tiene IPC, con dos comandos: `engine_status` (cada 2 s; cuando el motor responde, Rust lleva la ventana al dashboard) y `start_engine`.
 - **Rust habla con el motor por HTTP**, leyendo `~/.bodega/token` (0600, mismo usuario) igual que la CLI. Usa un cliente HTTP bloqueante en un hilo aparte y no hace llamadas fuera de `127.0.0.1`.
 - Cerrar la ventana la oculta y la app sigue en la barra de menú. Salir sólo desde el menú o con ⌘Q.
 
@@ -53,15 +53,15 @@ Bodega.app (Tauri · Rust)                 Motor (Node · ya existe)
 
 ### 0 · Preparación (antes de la rama 2)
 
-- [ ] Instalar Rust estable con `rustup` (no está en esta Mac). Xcode ya está.
-- [ ] Probar el dashboard completo en **Safari**: la app usa WKWebView (motor de Safari) y v0.1.0 sólo se probó en Chrome. Revisar sobre todo el progreso en streaming (`fetch` + `ReadableStream`), las fuentes Geist, el tema claro/oscuro y los drawers. Lo que falle se arregla en `web/` antes de empezar.
+- [x] Instalar Rust estable con `rustup` (no está en esta Mac). Xcode ya está.
+- [x] Probar el dashboard completo en **Safari**: la app usa WKWebView (motor de Safari) y v0.1.0 sólo se probó en Chrome. Revisar sobre todo el progreso en streaming (`fetch` + `ReadableStream`), las fuentes Geist, el tema claro/oscuro y los drawers. Lo que falle se arregla en `web/` antes de empezar.
 
 ### 2 · `feature/summary` · motor
 
-- [ ] `GET /api/summary` con token: `{ disks: [{ name, mount, free, total, internal }], scannedAt, scanning, reclaimable, alerts }`. Ligero: `df` en vivo y lo demás del último escaneo, sin escanear.
-- [ ] `config.json` gana `alertFreeGB` (entero, por omisión **20**, 0 = sin avisos). Se valida en `loadConfig` y se edita en Ajustes y en `PUT /api/config`.
-- [ ] `bodega status` en la CLI usa el mismo resumen.
-- [ ] Pruebas: el resumen exige token, no dispara escaneo y respeta el umbral; la configuración rechaza valores fuera de rango.
+- [x] `GET /api/summary` con token: `{ disks: [{ name, mount, free, total, internal }], scannedAt, scanning, reclaimable, alerts }`. Ligero: `df` en vivo y lo demás del último escaneo, sin escanear.
+- [x] `config.json` gana `alertFreeGB` (entero, por omisión **20**, 0 = sin avisos). Se valida en `loadConfig` y se edita en Ajustes y en `PUT /api/config`.
+- [x] `bodega status` en la CLI usa el mismo resumen.
+- [x] Pruebas: el resumen exige token, no dispara escaneo y respeta el umbral; la configuración rechaza valores fuera de rango.
 - **Listo cuando** `curl -H "x-bodega-token: …" 127.0.0.1:2633/api/summary` responde en menos de 300 ms con el escaneo hecho.
 
 ### 3 · `feature/desktop` · app
@@ -70,7 +70,8 @@ Estructura:
 
 ```
 desktop/
-├─ fallback/index.html          ventana de respaldo
+├─ art/                        SVG de origen de los íconos
+├─ fallback/                   página de respaldo (HTML, CSS y JS sin dependencias)
 └─ src-tauri/
    ├─ Cargo.toml / Cargo.lock
    ├─ tauri.conf.json           identificador com.reydavidag.bodega, sólo aarch64
@@ -81,32 +82,33 @@ desktop/
       ├─ engine.rs              token, /api/summary, /api/scan, kickstart
       ├─ tray.rs                menú de la barra
       ├─ alerts.rs              umbral y avisos sin repetir
+      ├─ text.rs                GB y «hace 2 h» como la CLI
       └─ nav.rs                 candado de navegación
 ```
 
-- [ ] **Andamiaje**: `@tauri-apps/cli` como devDependency fijada; scripts `npm run desktop:dev` y `npm run desktop:build`. `desktop/src-tauri/target/` en `.gitignore`; `Cargo.lock` sí se versiona.
-- [ ] **Ventana**: 1280×820, mínimo 960×600, título «Bodega», barra de título transparente con el fondo del tema. Tamaño y posición recordados (`tauri-plugin-window-state`).
-- [ ] **Candado de navegación** (`nav.rs`): permite `http://127.0.0.1:2633/*` y `http://localhost:2633/*`; lo demás va al navegador con `open`. Sin `devtools` en el build de release.
-- [ ] **Motor caído**: si `/api/summary` no responde al abrir, se muestra la ventana de respaldo. «Iniciar motor» ejecuta `launchctl kickstart gui/<uid>/dev.bodega.agent`; si el LaunchAgent no está instalado, explica `bodega install` y lo copia al portapapeles.
-- [ ] **Barra de menú** (`tray.rs`), ícono de plantilla monocromo (la caja):
+- [x] **Andamiaje**: `@tauri-apps/cli` como devDependency fijada; scripts `npm run desktop:dev` y `npm run desktop:build`. `desktop/src-tauri/target/` en `.gitignore`; `Cargo.lock` sí se versiona.
+- [x] **Ventana**: 1280×820, mínimo 960×600, título «Bodega», barra de título del sistema. Tamaño y posición recordados (`tauri-plugin-window-state`).
+- [x] **Candado de navegación** (`nav.rs`): permite `http://127.0.0.1:2633/*` y `http://localhost:2633/*`; lo demás va al navegador con `open`. Sin `devtools` en el build de release.
+- [x] **Motor caído**: si `/api/summary` no responde al abrir, la ventana muestra la página de respaldo. «Iniciar motor» ejecuta `launchctl kickstart gui/<uid>/dev.bodega.agent`; si el LaunchAgent no está instalado, explica `npm link && bodega install` y lo copia al portapapeles.
+- [x] **Barra de menú** (`tray.rs`), ícono de plantilla monocromo (la caja):
   - «114 GB libres en Macintosh HD» (sólo texto, se actualiza cada 60 s)
   - «Último escaneo: hace 2 h»
-  - Abrir Bodega · ⌘O
+  - Abrir Bodega
   - Escanear ahora (deshabilitado mientras escanea, con «Escaneando…»)
   - Abrir en el navegador
   - Iniciar con la sesión ✓
-  - Salir · ⌘Q
-- [ ] **Avisos** (`tauri-plugin-notification`): cuando el disco interno baja de `alertFreeGB`, un aviso «Quedan 18 GB libres · 42 GB recuperables» que abre Limpieza. No se repite hasta que el disco vuelva a subir del umbral más 5 GB. Aviso de «Escaneo terminado» sólo si la ventana está oculta.
-- [ ] **Inicio con la sesión** (`tauri-plugin-autostart`, LaunchAgent propio `com.reydavidag.bodega.launcher`), apagado por omisión y se activa desde el menú.
-- [ ] **Dock**: la app vive en la barra de menú; el ícono del Dock aparece sólo mientras la ventana está abierta (`ActivationPolicy::Accessory` ↔ `Regular`).
-- [ ] **Pruebas Rust**: candado de navegación (permitidas, rechazadas, trucos como `127.0.0.1:2633@evil.com`), lógica de avisos (cruza umbral, no repite, histéresis) y lectura del token (falta, vacío, permisos).
+  - Salir de Bodega
+- [x] **Avisos** (`tauri-plugin-notification`): cuando el disco interno baja de `alertFreeGB`, un aviso «Quedan 18 GB libres en Macintosh HD · 42 GB se pueden recuperar sin perder nada. Abre Bodega › Limpieza.» No se repite hasta que el disco vuelva a subir del umbral más 5 GB. Aviso de «Escaneo terminado» sólo si la ventana está oculta.
+- [x] **Inicio con la sesión** (`tauri-plugin-autostart`, LaunchAgent propio `com.reydavidag.bodega.launcher`), apagado por omisión y se activa desde el menú.
+- [x] **Dock**: la app vive en la barra de menú; el ícono del Dock aparece sólo mientras la ventana está abierta (`ActivationPolicy::Accessory` ↔ `Regular`).
+- [x] **Pruebas Rust**: candado de navegación (permitidas, rechazadas, trucos como `127.0.0.1:2633@evil.com`), lógica de avisos (cruza umbral, no repite, histéresis) lectura del token (falta, vacío, inválido), resumen del motor, fin del escaneo y textos del menú.
 - [ ] **Prueba manual** en esta Mac con datos reales: abrir, escanear desde el menú, simular y aplicar un plan, detener el motor → respaldo → iniciar, aviso con un umbral alto a propósito, cerrar y reabrir con el tamaño recordado.
 - **Listo cuando** `npm run desktop:build` deja `Bodega.app` en `desktop/src-tauri/target/release/bundle/macos/`, y la prueba manual pasa completa.
 
 ### 4 · `feature/desktop-ci` · CI y documentación
 
-- [ ] CI: job `desktop` en `macos-latest` con `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` y `tauri build --no-bundle`; caché de Cargo.
-- [ ] README: sección «App de escritorio» con captura de la ventana y del menú, y cómo compilarla desde el código (no se publica ejecutable).
+- [ ] CI: job `desktop` en `macos-latest` con `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings` y `cargo test`; caché de Cargo. Sin compilar el bundle: no se publica ejecutable.
+- [ ] README: sección «App de escritorio» con qué hace y cómo compilarla desde el código (no se publica ejecutable).
 - [ ] CONTRIBUTING: requisitos de Rust y cómo correr `desktop:dev`.
 - [ ] CLAUDE.md: Fase 2 en la tabla, `desktop/` en Correr y la regla de que Rust no opera archivos ni procesos.
 - [ ] CHANGELOG 0.2.0 y versión `0.2.0` en `package.json`, `tauri.conf.json` y `Cargo.toml`.
