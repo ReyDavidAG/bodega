@@ -111,12 +111,12 @@ desktop/
 - [x] README: sección «App de escritorio» con qué hace y cómo compilarla desde el código (no se publica ejecutable).
 - [x] CONTRIBUTING: requisitos de Rust y cómo correr `desktop:dev`.
 - [x] CLAUDE.md: Fase 2 en la tabla, `desktop/` en Correr y la regla de que Rust no opera archivos ni procesos.
-- [ ] CHANGELOG 0.2.0 y versión `0.2.0` en `package.json`, `tauri.conf.json` y `Cargo.toml`.
+- [x] CHANGELOG 0.2.0 y versión `0.2.0` en `package.json`, `tauri.conf.json` y `Cargo.toml`.
 
 ### 5 · `release/0.2.0`
 
-- [ ] `npm test && npm run lint && npm run build`, `cargo test`, `npm run desktop:build`.
-- [ ] Merge a `main`, tag `v0.2.0`, merge de regreso a `develop`.
+- [x] `npm test && npm run lint && npm run build`, `cargo test`, `npm run desktop:build`.
+- [x] Merge a `main`, tag `v0.2.0`, merge de regreso a `develop`.
 
 ### Reglas de seguridad de la app
 

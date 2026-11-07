@@ -224,7 +224,7 @@ export const handle = async (msg: Json): Promise<Json | null> => {
 			return reply({
 				protocolVersion: params.protocolVersion ?? '2025-06-18',
 				capabilities: { tools: {} },
-				serverInfo: { name: 'bodega', version: '0.1.0' },
+				serverInfo: { name: 'bodega', version: '0.2.0' },
 			})
 		}
 		case 'ping':
