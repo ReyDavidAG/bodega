@@ -42,8 +42,8 @@ export const summarize = async (
 			return {
 				name: d.name,
 				mount: d.mount,
-				free: Number.isFinite(space.free) ? space.free : d.free,
-				size: Number.isFinite(space.size) ? space.size : d.size,
+				free: Math.round(Number.isFinite(space.free) ? space.free : d.free),
+				size: Math.round(Number.isFinite(space.size) ? space.size : d.size),
 				internal: d.internal,
 			}
 		})
@@ -59,7 +59,7 @@ export const summarize = async (
 		disks: disks.filter(d => d.size > 0),
 		scannedAt: scan?.scannedAt ?? null,
 		scanning,
-		reclaimable,
+		reclaimable: Math.round(reclaimable),
 		alertFreeGB: config.alertFreeGB,
 		low: internal ? isLow(internal.free, config.alertFreeGB) : false,
 	}
