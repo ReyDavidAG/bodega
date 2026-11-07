@@ -14,4 +14,9 @@ export const settingsSchema = z.object({
 		.int('Días enteros')
 		.min(1, 'Mínimo 1 día')
 		.max(365, 'Máximo 365 días'),
+	alertFreeGB: z.coerce
+		.number()
+		.int('GB enteros')
+		.min(0, 'Usa 0 para no avisar')
+		.max(1000, 'Máximo 1000 GB'),
 })
