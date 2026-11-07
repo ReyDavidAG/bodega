@@ -67,6 +67,13 @@ test('el resumen trae discos, recuperable y umbral sin escanear', async () => {
 	assert.ok(s.disks.length >= 1)
 	assert.ok(s.disks.some((d: { internal: boolean }) => d.internal))
 	assert.ok(s.reclaimable > 0)
+	assert.ok(Number.isInteger(s.reclaimable))
+	assert.ok(
+		s.disks.every(
+			(d: { free: number; size: number }) =>
+				Number.isInteger(d.free) && Number.isInteger(d.size)
+		)
+	)
 	assert.equal(s.alertFreeGB, 20)
 	assert.equal(s.scanning, false)
 })
