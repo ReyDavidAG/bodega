@@ -11,13 +11,18 @@ export type Config = {
 	roots: string[]
 	activeDays: number
 	external: string | null
+	alertFreeGB: number
 }
 
 const DEFAULTS: Config = {
 	roots: ['~/Developer'],
 	activeDays: 14,
 	external: null,
+	alertFreeGB: 20,
 }
+
+export const validAlert = (n: unknown): n is number =>
+	Number.isInteger(n) && Number(n) >= 0 && Number(n) <= 1000
 
 const ensure = () => mkdirSync(DIR, { recursive: true, mode: 0o700 })
 
@@ -40,6 +45,9 @@ export const loadConfig = (): Config => {
 					? raw.activeDays
 					: DEFAULTS.activeDays,
 			external: typeof raw.external === 'string' ? raw.external : null,
+			alertFreeGB: validAlert(raw.alertFreeGB)
+				? raw.alertFreeGB
+				: DEFAULTS.alertFreeGB,
 		}
 	} catch {
 		return { ...DEFAULTS }

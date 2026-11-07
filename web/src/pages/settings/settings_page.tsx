@@ -15,6 +15,7 @@ const Form = ({ state }: { state: State }) => {
 	const client = useQueryClient()
 	const [roots, setRoots] = useState(state.config.roots.join('\n'))
 	const [days, setDays] = useState(String(state.config.activeDays))
+	const [alert, setAlert] = useState(String(state.config.alertFreeGB))
 	const [external, setExternal] = useState(state.config.external)
 	const [error, setError] = useState('')
 	const save = async (e: FormEvent) => {
@@ -25,6 +26,7 @@ const Form = ({ state }: { state: State }) => {
 				.map(r => r.trim())
 				.filter(Boolean),
 			activeDays: days,
+			alertFreeGB: alert,
 		})
 		if (!parsed.success)
 			return setError(parsed.error.issues[0]?.message ?? 'Revisa los datos')
@@ -67,6 +69,18 @@ const Form = ({ state }: { state: State }) => {
 						inputMode='numeric'
 						value={days}
 						onChange={e => setDays(e.target.value)}
+					/>
+				</label>
+				<label className='field-row'>
+					<span>
+						Avisar cuando el disco interno tenga menos de (GB, 0 = nunca)
+					</span>
+					<input
+						className='input'
+						style={{ width: 120 }}
+						inputMode='numeric'
+						value={alert}
+						onChange={e => setAlert(e.target.value)}
 					/>
 				</label>
 				<div className='field-row'>

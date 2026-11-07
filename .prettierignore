@@ -4,3 +4,5 @@ web/dist/
 propuesta/js/data.*.js
 package-lock.json
 *.md
+desktop/src-tauri/target/
+desktop/src-tauri/gen/

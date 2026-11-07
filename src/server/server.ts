@@ -15,6 +15,7 @@ import {
 	PORT,
 	saveConfig,
 	token,
+	validAlert,
 } from '../core/config.ts'
 import { moveDeskItem } from '../core/desktop.ts'
 import { listDisks } from '../core/disks.ts'
@@ -32,6 +33,7 @@ import {
 	restore,
 } from '../core/relocate.ts'
 import { lastScan, type Scan, scan, scanLive } from '../core/scan.ts'
+import { summarize } from '../core/summary.ts'
 import { backupVault, vaultImage } from '../core/vault.ts'
 
 import { demoScan } from './demo.ts'
@@ -44,7 +46,12 @@ const TOKEN = token()
 const HOSTS = new Set([`localhost:${PORT}`, `127.0.0.1:${PORT}`])
 
 let config: Config = DEMO
-	? { roots: ['~/Developer'], activeDays: 14, external: '/Volumes/EXTERNO' }
+	? {
+			roots: ['~/Developer'],
+			activeDays: 14,
+			external: '/Volumes/EXTERNO',
+			alertFreeGB: 20,
+		}
 	: loadConfig()
 let current: Scan | null = DEMO ? demoScan() : lastScan()
 let scanning: Promise<Scan> | null = null
@@ -206,6 +213,9 @@ type Handler = (
 
 const routes: Record<string, Handler> = {
 	'GET /api/state': async () => state(),
+
+	'GET /api/summary': async () =>
+		summarize(current, config, { scanning: scanning !== null, live: !DEMO }),
 
 	'GET /api/live': async () =>
 		DEMO
@@ -410,6 +420,7 @@ const routes: Record<string, Handler> = {
 					.filter(r => r.startsWith('~/') || r.startsWith('/'))
 			: config.roots
 		const activeDays = Number(body.activeDays)
+		const alertFreeGB = Number(body.alertFreeGB)
 		const external =
 			body.external === null
 				? null
@@ -424,6 +435,7 @@ const routes: Record<string, Handler> = {
 					? activeDays
 					: config.activeDays,
 			external,
+			alertFreeGB: validAlert(alertFreeGB) ? alertFreeGB : config.alertFreeGB,
 		}
 		if (!DEMO) saveConfig(config)
 		return state()
