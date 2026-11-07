@@ -1,5 +1,13 @@
+mod alerts;
 mod engine;
 mod nav;
+mod text;
+mod tray;
+
+use std::sync::Mutex;
+use std::sync::mpsc;
+use std::thread;
+use std::time::Duration;
 
 use tauri::async_runtime::spawn_blocking;
 use tauri::webview::NewWindowResponse;
@@ -47,11 +55,34 @@ fn open_window(app: &AppHandle) -> tauri::Result<WebviewWindow> {
         .build()
 }
 
+pub fn show_window(app: &AppHandle) {
+    if let Ok(window) = open_window(app) {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
+}
+
+fn watch(app: AppHandle, rx: mpsc::Receiver<()>) {
+    thread::spawn(move || {
+        loop {
+            let summary = engine::summary();
+            tray::update(&app, &summary);
+            let _ = rx.recv_timeout(Duration::from_secs(60));
+            while rx.try_recv().is_ok() {}
+        }
+    });
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![engine_status, start_engine])
         .setup(|app| {
+            let (tx, rx) = mpsc::channel();
+            app.manage(tray::Refresh(Mutex::new(tx)));
+            tray::build(app.handle())?;
             open_window(app.handle())?;
+            watch(app.handle().clone(), rx);
             Ok(())
         })
         .run(tauri::generate_context!())
