@@ -28,7 +28,7 @@ const plist = async (args: string[]) => {
 	}
 }
 
-const df = async (mount: string) => {
+export const df = async (mount: string) => {
 	const r = await run('df', ['-k', mount])
 	const parts = r.stdout.trim().split('\n').pop()?.split(/\s+/) ?? []
 	return {
