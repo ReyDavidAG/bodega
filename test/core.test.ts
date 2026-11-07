@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -9,6 +10,7 @@ import { ruleFor, stacksIn } from '../src/core/ecosystems.ts'
 import { assertSafe, HOME, isInside } from '../src/core/paths.ts'
 import { parseLsof } from '../src/core/processes.ts'
 import { scanProject } from '../src/core/projects.ts'
+import { isLow } from '../src/core/summary.ts'
 import { kindOf } from '../src/core/vault.ts'
 
 test('sólo es regenerable si la carpeta padre tiene el archivo del ecosistema', () => {
@@ -116,4 +118,32 @@ test('escanea un proyecto y encuentra sólo sus compilados', async () => {
 	const dirs = p.regen.map(r => r.path.split('/demo/')[1]).sort()
 	assert.ok(dirs.includes('build'))
 	assert.ok(!dirs.includes('docs/build'))
+})
+
+test('el aviso se dispara bajo el umbral y 0 lo apaga', () => {
+	const GB = 1024 ** 3
+	assert.equal(isLow(19 * GB, 20), true)
+	assert.equal(isLow(21 * GB, 20), false)
+	assert.equal(isLow(1 * GB, 0), false)
+})
+
+test('la configuración ignora un umbral inválido', () => {
+	const home = mkdtempSync(join(tmpdir(), 'bodega-cfg-'))
+	writeFileSync(
+		join(home, 'config.json'),
+		JSON.stringify({ alertFreeGB: -5, activeDays: 7 })
+	)
+	const config = JSON.parse(
+		execFileSync(
+			process.execPath,
+			[
+				'--input-type=module',
+				'-e',
+				`import { loadConfig } from '${new URL('../src/core/config.ts', import.meta.url)}'; console.log(JSON.stringify(loadConfig()))`,
+			],
+			{ env: { ...process.env, BODEGA_HOME: home }, encoding: 'utf8' }
+		)
+	)
+	assert.equal(config.activeDays, 7)
+	assert.equal(config.alertFreeGB, 20)
 })

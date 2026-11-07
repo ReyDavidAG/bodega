@@ -57,6 +57,32 @@ test('con token responde el estado en modo demo', async () => {
 	assert.equal(JSON.parse(r.text).demo, true)
 })
 
+test('el resumen exige token', async () =>
+	assert.equal((await call('/api/summary')).status, 401))
+
+test('el resumen trae discos, recuperable y umbral sin escanear', async () => {
+	const r = await call('/api/summary', { headers: auth })
+	assert.equal(r.status, 200)
+	const s = JSON.parse(r.text)
+	assert.ok(s.disks.length >= 1)
+	assert.ok(s.disks.some((d: { internal: boolean }) => d.internal))
+	assert.ok(s.reclaimable > 0)
+	assert.equal(s.alertFreeGB, 20)
+	assert.equal(s.scanning, false)
+})
+
+test('el umbral se guarda y rechaza valores fuera de rango', async () => {
+	const put = (alertFreeGB: unknown) =>
+		call('/api/config', { method: 'PUT', headers: auth, body: { alertFreeGB } })
+	await put(1000000)
+	await put(-1)
+	await put(2.5)
+	assert.equal(JSON.parse((await put(40)).text).config.alertFreeGB, 40)
+	assert.equal(JSON.parse((await put('x')).text).config.alertFreeGB, 40)
+	const s = JSON.parse((await call('/api/summary', { headers: auth })).text)
+	assert.equal(s.alertFreeGB, 40)
+})
+
 test('un Host ajeno se rechaza (DNS rebinding)', async () =>
 	assert.equal(
 		(
