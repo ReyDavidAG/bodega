@@ -68,6 +68,9 @@ fn watch(app: AppHandle, rx: mpsc::Receiver<()>) {
         loop {
             let summary = engine::summary();
             tray::update(&app, &summary);
+            if let Ok(summary) = &summary {
+                alerts::check(&app, summary);
+            }
             let _ = rx.recv_timeout(Duration::from_secs(60));
             while rx.try_recv().is_ok() {}
         }
@@ -76,10 +79,12 @@ fn watch(app: AppHandle, rx: mpsc::Receiver<()>) {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .invoke_handler(tauri::generate_handler![engine_status, start_engine])
         .setup(|app| {
             let (tx, rx) = mpsc::channel();
             app.manage(tray::Refresh(Mutex::new(tx)));
+            app.manage(alerts::Alerts(Mutex::new(alerts::LowDisk::default())));
             tray::build(app.handle())?;
             open_window(app.handle())?;
             watch(app.handle().clone(), rx);
