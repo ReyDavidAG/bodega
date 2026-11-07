@@ -107,10 +107,10 @@ desktop/
 
 ### 4 · `feature/desktop-ci` · CI y documentación
 
-- [ ] CI: job `desktop` en `macos-latest` con `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings` y `cargo test`; caché de Cargo. Sin compilar el bundle: no se publica ejecutable.
-- [ ] README: sección «App de escritorio» con qué hace y cómo compilarla desde el código (no se publica ejecutable).
-- [ ] CONTRIBUTING: requisitos de Rust y cómo correr `desktop:dev`.
-- [ ] CLAUDE.md: Fase 2 en la tabla, `desktop/` en Correr y la regla de que Rust no opera archivos ni procesos.
+- [x] CI: job `desktop` en `macos-latest` con `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings` y `cargo test`; caché de Cargo. Sin compilar el bundle: no se publica ejecutable.
+- [x] README: sección «App de escritorio» con qué hace y cómo compilarla desde el código (no se publica ejecutable).
+- [x] CONTRIBUTING: requisitos de Rust y cómo correr `desktop:dev`.
+- [x] CLAUDE.md: Fase 2 en la tabla, `desktop/` en Correr y la regla de que Rust no opera archivos ni procesos.
 - [ ] CHANGELOG 0.2.0 y versión `0.2.0` en `package.json`, `tauri.conf.json` y `Cargo.toml`.
 
 ### 5 · `release/0.2.0`
