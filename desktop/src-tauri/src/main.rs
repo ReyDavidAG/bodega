@@ -11,7 +11,9 @@ use std::time::Duration;
 
 use tauri::async_runtime::spawn_blocking;
 use tauri::webview::NewWindowResponse;
+use tauri::{ActivationPolicy, RunEvent, WindowEvent};
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 #[tauri::command]
 async fn engine_status(window: WebviewWindow) -> bool {
@@ -55,7 +57,16 @@ fn open_window(app: &AppHandle) -> tauri::Result<WebviewWindow> {
         .build()
 }
 
+const LAUNCHER: &str = "com.reydavidag.bodega.launcher";
+const HIDDEN: &str = "--hidden";
+
+fn state_flags() -> StateFlags {
+    StateFlags::all() & !StateFlags::VISIBLE
+}
+
 pub fn show_window(app: &AppHandle) {
+    let _ = app.set_activation_policy(ActivationPolicy::Regular);
+    let _ = app.show();
     if let Ok(window) = open_window(app) {
         let _ = window.show();
         let _ = window.unminimize();
@@ -77,19 +88,52 @@ fn watch(app: AppHandle, rx: mpsc::Receiver<()>) {
     });
 }
 
+fn hide_window(window: &tauri::Window) {
+    let app = window.app_handle();
+    let _ = app.save_window_state(state_flags());
+    let _ = window.hide();
+    let _ = app.set_activation_policy(ActivationPolicy::Accessory);
+}
+
 fn main() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(state_flags())
+                .build(),
+        )
+        .plugin(
+            tauri_plugin_autostart::Builder::new()
+                .app_name(LAUNCHER)
+                .arg(HIDDEN)
+                .build(),
+        )
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                hide_window(window);
+            }
+        })
         .invoke_handler(tauri::generate_handler![engine_status, start_engine])
         .setup(|app| {
             let (tx, rx) = mpsc::channel();
             app.manage(tray::Refresh(Mutex::new(tx)));
             app.manage(alerts::Alerts(Mutex::new(alerts::LowDisk::default())));
             tray::build(app.handle())?;
-            open_window(app.handle())?;
+            if std::env::args().any(|a| a == HIDDEN) {
+                app.set_activation_policy(ActivationPolicy::Accessory);
+            } else {
+                show_window(app.handle());
+            }
             watch(app.handle().clone(), rx);
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running Bodega");
+        .build(tauri::generate_context!())
+        .expect("error while building Bodega");
+    app.run(|app, event| {
+        if let RunEvent::Reopen { .. } = event {
+            show_window(app);
+        }
+    });
 }

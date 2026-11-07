@@ -5,9 +5,10 @@ use std::sync::mpsc::Sender;
 use std::thread;
 
 use tauri::image::Image;
-use tauri::menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem};
+use tauri::menu::{CheckMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Manager, Wry};
+use tauri_plugin_autostart::ManagerExt;
 
 use crate::engine::{self, Summary};
 use crate::{nav, text};
@@ -16,6 +17,7 @@ pub struct Tray {
     free: MenuItem<Wry>,
     scanned: MenuItem<Wry>,
     scan: MenuItem<Wry>,
+    login: CheckMenuItem<Wry>,
 }
 
 pub struct Scanning(pub AtomicBool);
@@ -28,6 +30,14 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let open = MenuItem::with_id(app, "open", "Abrir Bodega", true, None::<&str>)?;
     let scan = MenuItem::with_id(app, "scan", "Escanear ahora", true, None::<&str>)?;
     let browser = MenuItem::with_id(app, "browser", "Abrir en el navegador", true, None::<&str>)?;
+    let login = CheckMenuItem::with_id(
+        app,
+        "login",
+        "Iniciar con la sesión",
+        true,
+        app.autolaunch().is_enabled().unwrap_or(false),
+        None::<&str>,
+    )?;
     let quit = MenuItem::with_id(app, "quit", "Salir de Bodega", true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
@@ -38,6 +48,8 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
             &open,
             &scan,
             &browser,
+            &PredefinedMenuItem::separator(app)?,
+            &login,
             &PredefinedMenuItem::separator(app)?,
             &quit,
         ],
@@ -54,6 +66,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         free,
         scanned,
         scan,
+        login,
     });
     app.manage(Scanning(AtomicBool::new(false)));
     Ok(())
@@ -68,9 +81,24 @@ fn on_menu(app: &AppHandle, event: MenuEvent) {
                 .arg(nav::dashboard().as_str())
                 .spawn();
         }
+        "login" => toggle_login(app),
         "quit" => app.exit(0),
         _ => {}
     }
+}
+
+fn toggle_login(app: &AppHandle) {
+    let launcher = app.autolaunch();
+    let enabled = launcher.is_enabled().unwrap_or(false);
+    let _ = if enabled {
+        launcher.disable()
+    } else {
+        launcher.enable()
+    };
+    let _ = app
+        .state::<Tray>()
+        .login
+        .set_checked(launcher.is_enabled().unwrap_or(false));
 }
 
 pub fn free_line(summary: &Summary) -> String {
